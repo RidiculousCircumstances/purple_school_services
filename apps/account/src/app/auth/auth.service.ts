@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { LoginDto, RegisterDto } from './auth.controller';
 import { UserRepository } from '../user/repositiories/user.repository';
 import { UserEntity } from '../user/entities/user.entity';
 import { UserRole } from '@purple-services/interfaces';
 import { JwtService } from '@nestjs/jwt';
+import { AccountLogin, AccountRegister } from '@purple-services/contracts';
 
 @Injectable()
 export class AuthService {
 
     constructor(
         private readonly userRepository: UserRepository,
-        private readonly jwtSerrvice: JwtService) { }
+        private readonly jwtService: JwtService) { }
 
-    public async register({ email, password, displayedName }: RegisterDto) {
+    public async register({ email, password, displayedName }: AccountRegister.Request) {
         const oldUser = await this.userRepository.findUser(email);
 
         if (oldUser) {
@@ -31,7 +31,7 @@ export class AuthService {
         return { email: newUser.email };
     }
 
-    public async validate({ email, password }: LoginDto) {
+    public async validate({ email, password }: AccountLogin.Request) {
         const user = await this.userRepository.findUser(email);
 
         if (!user) {
@@ -40,7 +40,7 @@ export class AuthService {
 
         const isValidPassword = await new UserEntity(user).validatePassword(password);
 
-        if (isValidPassword) {
+        if (!isValidPassword) {
             throw new Error('Incorrect credentials');
         }
 
@@ -50,7 +50,7 @@ export class AuthService {
 
     public async login(id: string) {
         return {
-            accessToken: await this.jwtSerrvice.signAsync({ id })
+            accessToken: await this.jwtService.signAsync({ id })
         }
     }
 }
