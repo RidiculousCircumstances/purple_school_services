@@ -1,4 +1,4 @@
-import { IUser, UserRole } from "@purple-services/interfaces";
+import { IUser, IUserCourse, UserRole } from "@purple-services/interfaces";
 import { compare } from "bcryptjs";
 import { genSalt, hash } from "bcryptjs";
 
@@ -8,6 +8,7 @@ export class UserEntity implements IUser {
     email: string;
     hashedPassword?: string;
     role: UserRole;
+    courses?: IUserCourse[];
 
     constructor(user: IUser) {
         this._id = user._id;
@@ -15,6 +16,15 @@ export class UserEntity implements IUser {
         this.email = user.email;
         this.role = user.role;
         this.hashedPassword = user.hashedPassword;
+        this.courses = user.courses;
+    }
+
+    public getPublicProfile() {
+        return {
+            email: this.email,
+            displayedName: this.displayedName,
+            role: this.role
+        }
     }
 
     public async setPassword(password: string) {
@@ -25,5 +35,10 @@ export class UserEntity implements IUser {
 
     public async validatePassword(password: string) {
         return compare(password, this.hashedPassword);
+    }
+
+    public updateProfile(displayedName: string) {
+        this.displayedName = displayedName;
+        return this;
     }
 }

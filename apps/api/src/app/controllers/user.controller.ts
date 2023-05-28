@@ -1,6 +1,4 @@
-import { Body, Controller, Get, UseGuards } from '@nestjs/common';
-import { AccountLogin, AccountRegister } from "@purple-services/contracts";
-import { RMQRoute, RMQValidate } from 'nestjs-rmq';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { JWTAuthGuard } from '../guards/jwt.guard';
 import { UserId } from '../guards/user.decorator';
 
