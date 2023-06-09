@@ -10,6 +10,11 @@ export class UserCommands {
 
     constructor(private readonly userRepository: UserRepository) { }
 
+    /**
+     * Обновить профиль пользователя
+     * @param param0 
+     * @returns 
+     */
     @RMQValidate()
     @RMQRoute(AccountChangeProfile.topic)
     public async userInfo(@Body() { user, id }: AccountChangeProfile.Request): Promise<AccountChangeProfile.Response> {
