@@ -1,14 +1,16 @@
 import { Body, Controller, NotFoundException } from '@nestjs/common';
-import { AccountChangeProfile } from '@purple-services/contracts';
-import { RMQRoute, RMQValidate } from 'nestjs-rmq';
+import { AccountBuyCourse, AccountChangeProfile, AccountCheckPayment } from '@purple-services/contracts';
+import { RMQRoute, RMQService, RMQValidate } from 'nestjs-rmq';
 import { UserRepository } from './repositiories/user.repository';
 import { UserEntity } from './entities/user.entity';
-import { NotFoundError } from 'rxjs';
+import { BuyCourseSaga } from './sagas/buy-course.saga';
+import { UserService } from './user.service';
 
 @Controller()
 export class UserCommands {
 
-    constructor(private readonly userRepository: UserRepository) { }
+    constructor(private readonly userServive: UserService) { }
+
 
     /**
      * Обновить профиль пользователя
@@ -17,14 +19,27 @@ export class UserCommands {
      */
     @RMQValidate()
     @RMQRoute(AccountChangeProfile.topic)
-    public async userInfo(@Body() { user, id }: AccountChangeProfile.Request): Promise<AccountChangeProfile.Response> {
-        const existedUser = await this.userRepository.findUserById(id);
-        if (!existedUser) {
-            throw new NotFoundException();
-        }
+    public async changeProfile(@Body() { user, id }: AccountChangeProfile.Request): Promise<AccountChangeProfile.Response> {
+        return this.userServive.changeProfile(user, id);
+    }
 
-        const userEntity = new UserEntity(existedUser).updateProfile(user.displayedName);
-        this.userRepository.updateUser(userEntity);
-        return {};
+    /**
+     * Получить ссылку для оплаты курса
+     * @param param0 
+     */
+    @RMQValidate()
+    @RMQRoute(AccountBuyCourse.topic)
+    public async buyCourse(@Body() { userId, courseId }: AccountBuyCourse.Request): Promise<AccountBuyCourse.Response> {
+        return this.userServive.buyCourse(userId, courseId);
+    }
+
+    /**
+     * Проверить статус обработки платежа
+     * @param param0 
+     */
+    @RMQValidate()
+    @RMQRoute(AccountCheckPayment.topic)
+    public async checkPayment(@Body() { userId, courseId }: AccountCheckPayment.Request): Promise<AccountCheckPayment.Response> {
+        return this.userServive.checkPayment(userId, courseId);
     }
 }
